@@ -1,41 +1,36 @@
 import mysql.connector
-from tabulate import tabulate
-import os
+
+import os           
+
 from dotenv import load_dotenv
+
 import datetime
 
 load_dotenv()
 
-with mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password=os.getenv("MYSQL_ROOT_PASSWORD"),
-    database="custom_db2"
-    ) as conn:
-    cursor = conn.cursor()
-
 def ajouter_utilisateur():
    nom = input("Nom de l'utilisateur : ")
    email = input("Email : ")
-   cursor.execute("INSERT INTO utilisateurs (nom, email) VALUES (?, ?)", (nom, email))
+   cursor.execute("INSERT INTO utilisateurs (nom, email) VALUES (%s, %s)", (nom, email))
    conn.commit()
-   print("Utilisateur ajouté !")
+   print("Utilisateur ajouté ")
+
 def ajouter_livre():
    titre = input("Titre du livre : ")
    auteur = input("Auteur : ")
-   cursor.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", (titre, auteur))
+   cursor.execute("INSERT INTO livres (titre, auteur) VALUES (%s, %s)", (titre, auteur))
    conn.commit()
-   print("Livre ajouté !")
+   print("Livre ajouté ")
 def enregistrer_emprunt():
    id_utilisateur = input("ID de l'utilisateur : ")
    id_livre = input("ID du livre : ")
    date_emprunt = datetime.date.today().isoformat()
    cursor.execute("""
        INSERT INTO emprunts (id_utilisateur, id_livre, date_emprunt, date_retour)
-       VALUES (?, ?, ?, NULL)
+       VALUES (%s,%s,%s, NULL)
    """, (id_utilisateur, id_livre, date_emprunt))
    conn.commit()
-   print("Emprunt enregistré !")
+   print("Emprunt enregistré ")
 def afficher_emprunts_en_cours():
    cursor.execute("""
        SELECT u.nom, l.titre, e.date_emprunt
@@ -50,14 +45,14 @@ def afficher_emprunts_en_cours():
        for row in rows:
            print(f"Utilisateur: {row[0]} | Livre: {row[1]} | Date emprunt: {row[2]}")
    else:
-       print("Aucun emprunt en cours.")
+       print("Aucun emprunt en cours")
 def afficher_historique_utilisateur():
    id_utilisateur = input("ID de l'utilisateur : ")
    cursor.execute("""
        SELECT l.titre, e.date_emprunt, e.date_retour
        FROM emprunts e
        JOIN livres l ON e.id_livre = l.id
-       WHERE e.id_utilisateur = ?
+       WHERE e.id_utilisateur = %s
    """, (id_utilisateur,))
    rows = cursor.fetchall()
    if rows:
@@ -72,12 +67,12 @@ def main():
    while True:
        print("""
        Choisissez une option :
-       1. Ajouter un utilisateur
-       2. Ajouter un livre
-       3. Enregistrer un emprunt
-       4. Afficher les emprunts en cours
-       5. Afficher l'historique d'un utilisateur
-       6. Quitter
+       1. ajouter un utilisateur
+       2. ajouter un livre
+       3. enregistrer un emprunt
+       4. afficher les emprunts en cours
+       5. afficher l'historique d'un utilisateur
+       6. quitter
        """)
        choix = input("Votre choix : ")
        if choix == "1":
@@ -94,5 +89,14 @@ def main():
            break
        else:
            print("Choix invalide.")
-if __name__ == "__main__":
-   main()
+
+with mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password=os.getenv("MYSQL_ROOT_PASSWORD"),
+    database="custom_db"
+    ) as conn:
+        cursor = conn.cursor()
+
+        if __name__ == "__main__":
+            main()
