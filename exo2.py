@@ -63,6 +63,26 @@ def afficher_historique_utilisateur():
    else:
        print("Aucun emprunt pour cet utilisateur.")
 
+def rendre_livre():
+   id_emprunt = input("ID de l'emprunt à rendre : ")
+   date_retour = datetime.date.today().isoformat()
+   with mysql.connector.connect(
+       host="localhost",
+       user="root",
+       password=os.getenv("MYSQL_ROOT_PASSWORD"),
+       database="custom_db2"
+   ) as conn:
+       cursor = conn.cursor()
+       cursor.execute("""
+           UPDATE emprunts
+           SET date_retour = %s
+           WHERE id = %s AND date_retour IS NULL
+       """, (date_retour, id_emprunt))
+       if cursor.rowcount == 0:
+           print("Aucun emprunt actif trouvé pour cet ID.")
+       else:
+           conn.commit()
+           print("Livre rendu avec succès.")
 def main():
    while True:
        print("""
@@ -72,7 +92,8 @@ def main():
        3. enregistrer un emprunt
        4. afficher les emprunts en cours
        5. afficher l'historique d'un utilisateur
-       6. quitter
+       6. rendre un livre      
+       7. quitter
        """)
        choix = input("Votre choix : ")
        if choix == "1":
@@ -86,6 +107,8 @@ def main():
        elif choix == "5":
            afficher_historique_utilisateur()
        elif choix == "6":
+           rendre_livre()
+       elif choix == "7":
            break
        else:
            print("Choix invalide.")
