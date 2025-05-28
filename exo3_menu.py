@@ -3,7 +3,16 @@ import os
 import random
 import time
 from dotenv import load_dotenv
-load_dotenv()
+from pymongo import MongoClient
+
+def show_mongo_logs():
+    client = MongoClient("mongodb://localhost:27017/")
+    db = client["custom_db2"]
+    logs_collection = db["audit_logs"]
+    logs = logs_collection.find()
+    for log in logs:
+        print(log)
+
 def get_connection():
    return mysql.connector.connect(
        host="localhost",
